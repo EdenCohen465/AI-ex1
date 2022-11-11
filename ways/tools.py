@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-
+import graph
 import time
 import zlib
 from math import acos, radians, pi
-from numpy import ones, cos,array, sin
+from numpy import ones, cos, array, sin
+import bfs
 'General tools'
 
 DB_DIRNAME = 'db/'
@@ -11,9 +12,12 @@ DB_DIRNAME = 'db/'
 'This is arbitrary, and will change in the tests'
 SEED = 0x23587643
 
+
 def dhash(*data):
     'Generates a random-looking deterministic hash'
-    return abs(zlib.adler32(bytes(str(data),'UTF-8'))*100) * SEED % 0xffffffff
+    return abs(zlib.adler32(bytes(str(data), 'UTF-8')) * 100) * SEED % 0xffffffff
+
+
 ## The move from python 2 to 3 caused some problems.
 
 def dbopen(fname, *args, **kwargs):
@@ -24,6 +28,8 @@ def dbopen(fname, *args, **kwargs):
 
 
 'DMS := Degrees, Minutes, Seconds'
+
+
 def float2dms(decimal_degrees):
     degrees = int(decimal_degrees)
     minutes = int(60 * (decimal_degrees - degrees))
@@ -48,47 +54,65 @@ def compute_distance(lat1, lon1, lat2, lon2):
 
     phi1 = radians(90 - lat1)
     phi2 = radians(90 - lat2)
-    
+
     meter_units_factor = 40000 / (2 * pi)
     arc = acos(sin(phi1) * sin(phi2) * cos(radians(lon1) - radians(lon2))
-             + cos(phi1) * cos(phi2))
+               + cos(phi1) * cos(phi2))
     return arc * meter_units_factor
 
 
 class Everything(object):
     '(Lousy) complement for the empty set'
+
     def __contains__(self, val):
         return True
 
+
 def base_traffic_pattern():
-        ''' Creates a base traffic pattern:
+    ''' Creates a base traffic pattern:
             we can go at max speed (divide by 1)
             traffic gets worse at 6 AM and 3 PM, with peak at 8 AM and 5 PM, 
             and then it subsides again within 2 hours'''
-            
-        base_pattern = ones(60*24)
-        base_pattern[(60*6):(10*60)] += cos(((array(range(4*60))/(4*60))-0.5)*pi)
-        base_pattern[(15*60):(19*60)] += base_pattern[(60*6):(10*60)]
-        return list(base_pattern)
-        
-def generate_traffic_noise_params(seed1,seed2):
-    ''' generates some parameters for the traffic noise
+
+    base_pattern = ones(60 * 24)
+    base_pattern[(60 * 6):(10 * 60)] += cos(((array(range(4 * 60)) / (4 * 60)) - 0.5) * pi)
+    base_pattern[(15 * 60):(19 * 60)] += base_pattern[(60 * 6):(10 * 60)]
+    return list(base_pattern)
+
+
+def generate_traffic_noise_params(seed1, seed2):
+    """ generates some parameters for the traffic noise
     It should look random, and it is symmetrical
     (Can't think why it has to be symmetrical, but it would be easy enough to
-    modify it not to be if need be) '''
-    wavelength_cos = 60 + 20*(dhash(seed1+seed2)/0xffffffff) - 10
-    wavelength_sin = 60 + 20*(dhash(seed1*seed2)/0xffffffff) - 10
-    return(wavelength_cos,wavelength_sin)
+    modify it not to be if need be) """
+    wavelength_cos = 60 + 20 * (dhash(seed1 + seed2) / 0xffffffff) - 10
+    wavelength_sin = 60 + 20 * (dhash(seed1 * seed2) / 0xffffffff) - 10
+    return (wavelength_cos, wavelength_sin)
     ## should It only be positive addition to the multiplier? A* needs an optimistic hueristic
-        
-def generate_slowdown_multiplier(road_length, road_maxspeed, base_val, param1, param2,time):
-    multiplier = (cos(time*pi/param1) + sin(time*pi/param2))/2 + base_val + 1 ## multiplier must always be >= 1
+
+
+def generate_slowdown_multiplier(road_length, road_maxspeed, base_val, param1, param2, time):
+    multiplier = (cos(time * pi / param1) + sin(
+        time * pi / param2)) / 2 + base_val + 1  ## multiplier must always be >= 1
     ## That's why I add 1, because sin and cos get a minimum of -1.
-    km_per_minute=road_maxspeed/60
-    if (km_per_minute/road_length)<0.06:
-        multiplier = multiplier*km_per_minute/(0.06*road_length)
-    return max(1,multiplier)
-    
+    km_per_minute = road_maxspeed / 60
+    if (km_per_minute / road_length) < 0.06:
+        multiplier = multiplier * km_per_minute / (0.06 * road_length)
+    return max(1, multiplier)
+
+
+
+def generate_search_problem():
+    roads = graph.load_map_from_csv()
+    problem = bfs.RoutingProblem(roads[0], roads[1], roads)
+    sol, log = bfs.breadth_first_graph_search(problem)
+    print(sol, log)
+
+
+
+
+
+
 ''' explanation for generate_slowdown_multiplier:
 We want to make sure someone who enters the same road 1 minute after you cannot
 exit the road BEFORE you.
@@ -121,22 +145,25 @@ speed, though I think the multiplier will always be > 1, this is just in case.
 I actually changed it to 0.06 just in case, because the realtime thing is 
 different
 
-'''    
+'''
+
 
 def timed(f):
     '''decorator for printing the timing of functions
     usage: 
     @timed
     def some_funcion(args...):'''
-    
+
     def wrap(*x, **d):
         start = time.perf_counter()
         res = f(*x, **d)
         print(f.__name__, ':', time.perf_counter() - start)
         return res
+
     return wrap
 
 
 if __name__ == '__main__':
-    for i in range(100):
-        print(dhash(i))
+    generate_search_problem()
+    # for i in range(100):
+    #     print(dhash(i))
