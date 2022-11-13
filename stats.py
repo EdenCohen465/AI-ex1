@@ -32,11 +32,11 @@ def calc_branching_factor(roads):
     return min_b, max_b, avg_b
 
 
-
 def create_link_type_histogram(roads):
     link_list = list(li for li in roads.iterlinks())
     highway_type_list = list(li.highway_type for li in link_list)
     return collections.Counter(highway_type_list)
+
 
 # Get roads - dict of junctions.
 def map_statistics(roads):

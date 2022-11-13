@@ -1,10 +1,16 @@
 # -*- coding: utf-8 -*-
-import graph
+import random
+import os
+import csv
+
+import numpy
+
+from ways import graph
 import time
 import zlib
 from math import acos, radians, pi
 from numpy import ones, cos, array, sin
-import bfs
+
 'General tools'
 
 DB_DIRNAME = 'db/'
@@ -21,7 +27,7 @@ def dhash(*data):
 ## The move from python 2 to 3 caused some problems.
 
 def dbopen(fname, *args, **kwargs):
-    'make sure we are in the correct directory'
+    """make sure we are in the correct directory"""
     if not fname.startswith(DB_DIRNAME):
         fname = DB_DIRNAME + fname
     return open(fname, *args, **kwargs)
@@ -42,7 +48,7 @@ def dms2float(degrees, minutes, seconds=0):
 
 
 def compute_distance(lat1, lon1, lat2, lon2):
-    '''computes distance in KM'''
+    """computes distance in KM"""
     '''
     This code was borrowed from 
     http://www.johndcook.com/python_longitude_latitude.html
@@ -56,8 +62,8 @@ def compute_distance(lat1, lon1, lat2, lon2):
     phi2 = radians(90 - lat2)
 
     meter_units_factor = 40000 / (2 * pi)
-    arc = acos(sin(phi1) * sin(phi2) * cos(radians(lon1) - radians(lon2))
-               + cos(phi1) * cos(phi2))
+    arc = acos(numpy.sin(phi1) * numpy.sin(phi2) * numpy.cos(radians(lon1) - radians(lon2))
+               + numpy.cos(phi1) * numpy.cos(phi2))
     return arc * meter_units_factor
 
 
@@ -74,8 +80,8 @@ def base_traffic_pattern():
             traffic gets worse at 6 AM and 3 PM, with peak at 8 AM and 5 PM, 
             and then it subsides again within 2 hours'''
 
-    base_pattern = ones(60 * 24)
-    base_pattern[(60 * 6):(10 * 60)] += cos(((array(range(4 * 60)) / (4 * 60)) - 0.5) * pi)
+    base_pattern = numpy.ones(60 * 24)
+    base_pattern[(60 * 6):(10 * 60)] += numpy.cos(((numpy.array(range(4 * 60)) / (4 * 60)) - 0.5) * pi)
     base_pattern[(15 * 60):(19 * 60)] += base_pattern[(60 * 6):(10 * 60)]
     return list(base_pattern)
 
@@ -92,7 +98,7 @@ def generate_traffic_noise_params(seed1, seed2):
 
 
 def generate_slowdown_multiplier(road_length, road_maxspeed, base_val, param1, param2, time):
-    multiplier = (cos(time * pi / param1) + sin(
+    multiplier = (numpy.cos(time * pi / param1) + numpy.sin(
         time * pi / param2)) / 2 + base_val + 1  ## multiplier must always be >= 1
     ## That's why I add 1, because sin and cos get a minimum of -1.
     km_per_minute = road_maxspeed / 60
@@ -101,16 +107,43 @@ def generate_slowdown_multiplier(road_length, road_maxspeed, base_val, param1, p
     return max(1, multiplier)
 
 
-
-def generate_search_problem():
+def create_csv_problems():
     roads = graph.load_map_from_csv()
-    problem = bfs.RoutingProblem(roads[0], roads[1], roads)
-    sol, log = bfs.breadth_first_graph_search(problem)
-    print(sol, log)
+    problems = []
+    while len(problems) < 100:
+        s, g = generate_search_problem(roads)
+        problem = [s, g]
+        # check if the problem already exists-if true, generate another problem
+        if problem in problems or s == g:
+            continue
+        problems.append(problem)
+
+    if os.path.exists('problems.csv'):
+        os.remove('problems.csv')
+    # write problems to csv file
+    with open('problems.csv', 'w', encoding='UTF8', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerows(problems)
 
 
-
-
+def generate_search_problem(roads):
+    # find a path 100 times :
+    # 1. generate random start junction.
+    random_s = random.randint(0, len(roads))
+    j_start = roads[random_s]
+    # TODO: 2. change num of steps to be more complex
+    steps = random.randint(1, 5)
+    # 3. walk from neigbor to neighbor steps time.
+    current_junction = j_start
+    for i in range(steps):
+        # get random neighbor-if exists, in not, set current neighbor to be the goal.
+        if len(current_junction.links) == 0:
+            break
+        random_n = random.randint(0, len(current_junction.links) - 1)
+        current_junction = roads[current_junction.links[random_n].target]
+    # take the last neighbor as goal.
+    j_goal = current_junction
+    return j_start.index, j_goal.index
 
 
 ''' explanation for generate_slowdown_multiplier:
@@ -164,6 +197,7 @@ def timed(f):
 
 
 if __name__ == '__main__':
-    generate_search_problem()
+    # create_csv_problems()
     # for i in range(100):
+    pass
     #     print(dhash(i))
