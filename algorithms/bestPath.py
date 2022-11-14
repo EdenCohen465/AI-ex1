@@ -23,9 +23,7 @@ def find_min_distances_and_predecessor(roads, source, target, f):
             current_j = roads[current_junc_index]
             # get potential new_dist from start to link = the distance from s to current junction + the distance
             # from current junction to neighbor link.
-            new_dist = min_distances[current_junc_index] + f(current_j.lat, current_j.lon,
-                                                             neighbor_link.lat,
-                                                             neighbor_link.lon)
+            new_dist = min_distances[current_junc_index] + f(current_j, neighbor_link)
 
             # if the new_dist is shorter to reach neighbor updated to newDist
             if new_dist < min_distances[neighbor_link.index]:

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+# from numpy import sin, cos, ones, array
+import numpy as np
 import random
 import os
 import csv
-
-import numpy
-
-from ways import graph
+import ways.graph as graph
 import time
 import zlib
+
 from math import acos, radians, pi
-from numpy import ones, cos, array, sin
+
 
 'General tools'
 
@@ -62,8 +62,8 @@ def compute_distance(lat1, lon1, lat2, lon2):
     phi2 = radians(90 - lat2)
 
     meter_units_factor = 40000 / (2 * pi)
-    arc = acos(numpy.sin(phi1) * numpy.sin(phi2) * numpy.cos(radians(lon1) - radians(lon2))
-               + numpy.cos(phi1) * numpy.cos(phi2))
+    arc = acos(np.sin(phi1) * np.sin(phi2) * np.cos(radians(lon1) - radians(lon2))
+               + np.cos(phi1) * np.cos(phi2))
     return arc * meter_units_factor
 
 
@@ -80,8 +80,8 @@ def base_traffic_pattern():
             traffic gets worse at 6 AM and 3 PM, with peak at 8 AM and 5 PM, 
             and then it subsides again within 2 hours'''
 
-    base_pattern = numpy.ones(60 * 24)
-    base_pattern[(60 * 6):(10 * 60)] += numpy.cos(((numpy.array(range(4 * 60)) / (4 * 60)) - 0.5) * pi)
+    base_pattern = np.ones(60 * 24)
+    base_pattern[(60 * 6):(10 * 60)] += np.cos(((np.array(range(4 * 60)) / (4 * 60)) - 0.5) * pi)
     base_pattern[(15 * 60):(19 * 60)] += base_pattern[(60 * 6):(10 * 60)]
     return list(base_pattern)
 
@@ -98,7 +98,7 @@ def generate_traffic_noise_params(seed1, seed2):
 
 
 def generate_slowdown_multiplier(road_length, road_maxspeed, base_val, param1, param2, time):
-    multiplier = (numpy.cos(time * pi / param1) + numpy.sin(
+    multiplier = (np.cos(time * pi / param1) + np.sin(
         time * pi / param2)) / 2 + base_val + 1  ## multiplier must always be >= 1
     ## That's why I add 1, because sin and cos get a minimum of -1.
     km_per_minute = road_maxspeed / 60

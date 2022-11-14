@@ -1,17 +1,11 @@
-'''
-Parse input and run appropriate code.
-Don't use this file for the actual work; only minimal code should be here.
-We just parse input and call methods from other modules.
-'''
-import heapq
-import os.path
-from queue import PriorityQueue
 
-from algorithms import astar
-from algorithms.astar import astar_path
-from algorithms.ucs import ucs_path
-from ways import tools, graph
-import csv
+import os
+import algorithms.astar as astar
+import algorithms.ucs as ucs
+import ways.graph as graph
+
+print(os.getcwd())
+
 
 
 # do NOT import ways. This should be done from other files
@@ -100,7 +94,7 @@ def huristic_function(lat1, lon1, lat2, lon2):
 
 def find_ucs_rout(source, target):
     roads = graph.load_map_from_csv()
-    path, min_distance = ucs_path(source, target, roads)
+    path, min_distance = ucs.ucs_path(source, target, roads)
     for j in path:
         print(str(j), end=" ")
     return path
@@ -108,7 +102,7 @@ def find_ucs_rout(source, target):
 
 def find_astar_route(source, target):
     roads = graph.load_map_from_csv()
-    path, min_distance = astar_path(source, target, roads)
+    path, min_distance = astar.astar_path(source, target, roads)
     for j in path:
         print(str(j), end=" ")
     return path
@@ -133,6 +127,5 @@ def dispatch(argv):
 
 if __name__ == '__main__':
     from sys import argv
-
-    find_astar_route(0,2)
+    #astar.asar_run()
     # dispatch(argv)
