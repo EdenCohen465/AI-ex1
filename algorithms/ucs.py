@@ -36,6 +36,7 @@ def g(j1, j2):
         # find the link that the target is j1:
         if link.target == j2.index:
             required_link = link
+            break
     # find maximum speed in link-
     max_speed = info.SPEED_RANGES[required_link.highway_type][1]
     return (required_link.distance * 0.001) / max_speed

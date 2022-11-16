@@ -70,5 +70,5 @@ def generate_graph():
                 writer.writerow(hg)
 
 if __name__ == '__main__':
-    # asar_run()
-    generate_graph()
+    asar_run()
+    #generate_graph()
