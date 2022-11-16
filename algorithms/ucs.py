@@ -2,23 +2,27 @@
 import csv
 import os
 
+from ways import info as info
+from utils import get_project_root
 from algorithms.bestPath import find_min_distances_and_predecessor, find_path
 from ways import tools, graph
 
 
 def ucs_run():
     roads = graph.load_map_from_csv()
+    path_result = os.path.join(get_project_root(), 'results/UCSRuns.txt')
+    path_problems = os.path.join(get_project_root(), 'problems.csv')
     # check if the file already exists, if so delete the file.
-    if os.path.exists('results/UCSRuns.txt'):
-        os.remove('results/UCSRuns.txt')
+    if os.path.exists(path_result):
+        os.remove(path_result)
 
-    with open('ways/problems.csv', 'r') as problems_file:
+    with open(path_problems, 'r') as problems_file:
         csv_reader = csv.reader(problems_file)
         for problem in csv_reader:
             print(problem)
             path, min_distance = ucs_path(int(problem[0]), int(problem[1]), roads)
             print(path, min_distance)
-            with open('results/UCSRuns.txt', 'a') as results_file:
+            with open(path_result, 'a') as results_file:
                 line = ''
                 for j in path:
                     line += str(j) + ' '
@@ -32,7 +36,9 @@ def g(j1, j2):
         # find the link that the target is j1:
         if link.target == j2.index:
             required_link = link
-    return required_link.distance
+    # find maximum speed in link-
+    max_speed = info.SPEED_RANGES[required_link.highway_type][1]
+    return (required_link.distance * 0.001) / max_speed
 
 
 def ucs_path(source, target, roads):
@@ -44,8 +50,7 @@ def ucs_path(source, target, roads):
         return None
 
 
-
-
 if __name__ == '__main__':
     from sys import argv
+
     ucs_run()

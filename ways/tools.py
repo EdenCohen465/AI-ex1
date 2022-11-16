@@ -1,19 +1,18 @@
 # -*- coding: utf-8 -*-
 # from numpy import sin, cos, ones, array
+import os.path
+
 import numpy as np
-import random
-import os
-import csv
-import ways.graph as graph
+
 import time
 import zlib
-
+from utils import get_project_root
 from math import acos, radians, pi
 
 
 'General tools'
 
-DB_DIRNAME = 'db/'
+DB_DIRNAME = os.path.join(get_project_root(), 'db')
 
 'This is arbitrary, and will change in the tests'
 SEED = 0x23587643
@@ -29,7 +28,7 @@ def dhash(*data):
 def dbopen(fname, *args, **kwargs):
     """make sure we are in the correct directory"""
     if not fname.startswith(DB_DIRNAME):
-        fname = DB_DIRNAME + fname
+        fname = os.path.join(DB_DIRNAME, fname)
     return open(fname, *args, **kwargs)
 
 
@@ -107,43 +106,6 @@ def generate_slowdown_multiplier(road_length, road_maxspeed, base_val, param1, p
     return max(1, multiplier)
 
 
-def create_csv_problems():
-    roads = graph.load_map_from_csv()
-    problems = []
-    while len(problems) < 100:
-        s, g = generate_search_problem(roads)
-        problem = [s, g]
-        # check if the problem already exists-if true, generate another problem
-        if problem in problems or s == g:
-            continue
-        problems.append(problem)
-
-    if os.path.exists('problems.csv'):
-        os.remove('problems.csv')
-    # write problems to csv file
-    with open('problems.csv', 'w', encoding='UTF8', newline='') as f:
-        writer = csv.writer(f)
-        writer.writerows(problems)
-
-
-def generate_search_problem(roads):
-    # find a path 100 times :
-    # 1. generate random start junction.
-    random_s = random.randint(0, len(roads))
-    j_start = roads[random_s]
-    # TODO: 2. change num of steps to be more complex
-    steps = random.randint(1, 5)
-    # 3. walk from neigbor to neighbor steps time.
-    current_junction = j_start
-    for i in range(steps):
-        # get random neighbor-if exists, in not, set current neighbor to be the goal.
-        if len(current_junction.links) == 0:
-            break
-        random_n = random.randint(0, len(current_junction.links) - 1)
-        current_junction = roads[current_junction.links[random_n].target]
-    # take the last neighbor as goal.
-    j_goal = current_junction
-    return j_start.index, j_goal.index
 
 
 ''' explanation for generate_slowdown_multiplier:

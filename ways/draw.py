@@ -4,6 +4,7 @@
 from . import info
 from . import tools
 from . import graph
+import matplotlib.pyplot as plt
 
 try:
     import matplotlib.pyplot as plt
