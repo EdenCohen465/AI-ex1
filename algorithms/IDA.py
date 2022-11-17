@@ -1,6 +1,5 @@
 import csv
 import os
-import random
 from collections import namedtuple
 
 from utils import get_project_root
@@ -11,62 +10,88 @@ from algorithms import ucs as ucs
 new_limit = 0
 # define class Node
 Node = namedtuple('Node',
-                  ['cost',       # double
+                  ['cost',  # double
                    'index',  # int junction identifier
-                   'path',       # list of junctions
+                   'path',  # list of junctions
                    ])
+pre_nodes = {}
 
-def DFS_countour(roads, current_j, cost, path, f_limit, target, h, f):
+
+def DFS_countour(roads1, current_j, cost, path1, f_limit, target, h, f):
     global new_limit
-    j = roads[current_j]
-    t = roads[target]
+    j = roads1[current_j]
+    t = roads1[target]
     # calc the heuristic distance to the target. if we are not in the limit, return.
     new_f = cost + h(j.lat, j.lon, t.lat, t.lon)
     if new_f > f_limit:
         new_limit = min(new_f, new_limit)
+        # pre_nodes.pop(current_j)
         return None
     # if we get to the goal-return the node and the limit
     if current_j == target:
-        return path
+        return path1
 
     # print("Visiting Node " + str(current_j))
-
+    #
     # else, we are in the limit, so continue to expand the children.
     for neighbor in j.links:
         # print(neighbor.target)
-        n = roads[neighbor.target]
-        new_path = []
+        n = roads1[neighbor.target]
+        # delete old child of current_j
 
-        path = DFS_countour(roads, n.index, cost + h(j.lat, j.lon, n.lat, n.lon), new_path, f_limit, target, h, f)
-        if path:
-            return path
+        keys_to_remove = []
+
+        pre_nodes[current_j] = neighbor.target
+        if path1 is not None:
+            path1.append(n.index)
+            new_path = path1
+        else:
+            new_path = [n.index]
+        path1 = DFS_countour(roads1, n.index, cost + h(j.lat, j.lon, n.lat, n.lon), new_path, f_limit, target, h, f)
+        if path1 is not None:
+            return path1
     return None
 
+def find_path(source, target, predecessor):
+    path = []
+    # start from the end to the  start to fund the path
+    current_node = source
+    while current_node != target:
+        if current_node not in predecessor:
+            print("Path not reachable")
+            break
+        else:
+            path.append(current_node)
+            current_node = predecessor[current_node]
+    path.append(target)
+    return path
 
-def IDA_star(roads, source, target, f, h):
+
+def IDA_star(roads2, source, target, f, h):
     global new_limit
-    node = Node(0, source, [source])
-    new_limit = h(roads[source].lat, roads[source].lon, roads[target].lat, roads[target].lon)
+    new_limit = h(roads2[source].lat, roads2[source].lon, roads2[target].lat, roads2[target].lon)
     while True:
-        # print("Iteration with threshold: " + str(new_limit))
+        print("Iteration with threshold: " + str(new_limit))
         f_limit = new_limit
         new_limit = float("inf")
-        path = DFS_countour(roads, source, 0, None, f_limit, target, h, f)
-        if path:
-            return path
+        path2 = DFS_countour(roads2, source, 0, None, f_limit, target, h, f)
+        if path2:
+            print(pre_nodes)
+            return path2
+        pre_nodes.clear()
 
 
-def find_g_time(path, roads):
+def find_g_time(path3, roads3):
     # print(path)
     time = 0
-    for i in range(len(path)):
-        if i < len(path) - 1:
-            time += astar.g(roads[path[i]], roads[path[i + 1]])
+    for i in range(len(path3)):
+        if i < len(path3) - 1:
+            time += astar.g(roads3[path3[i]], roads3[path3[i + 1]])
     return time
 
 
 def ida_run():
-    roads = load_map_from_csv()
+    roads4 = load_map_from_csv()
     results_path = os.path.join(get_project_root(), 'results', 'IDARuns.txt')
     problem_path = os.path.join(get_project_root(), 'problems.csv')
     # check if the file already exists, if so delete the file.
@@ -76,32 +101,37 @@ def ida_run():
     with open(problem_path, 'r') as problems_file:
         csv_reader = csv.reader(problems_file)
         for problem in csv_reader:
-            path = IDA_star(roads, int(problem[0]), int(problem[1]), f=lambda j_1, j_2:
-            astar.huristic_function(roads[j_1].lat, roads[j_1].lon, roads[j_2].lat, roads[j_2].lon) + ucs.g(roads[j_1],
-                                                                                                            roads[j_2]),
+            path = IDA_star(roads4, int(problem[0]), int(problem[1]), f=lambda j_1, j_2:
+            astar.huristic_function(roads4[j_1].lat, roads4[j_1].lon, roads4[j_2].lat, roads4[j_2].lon) + ucs.g(
+                roads4[j_1],
+                roads4[j_2]),
                             h=astar.huristic_function)
             # path.insert(0, int(problem[0]))
+            path = find_path(int(problem[0]), int(problem[1]), pre_nodes)
             with open(results_path, 'a') as results_file:
                 line = ''
-                print(problem)
-
-                print(path)
                 for j in path:
                     line += str(j) + ' '
-                line += '- ' + str(find_g_time(path, roads) + astar.huristic_function(roads[int(problem[0])].lat,
-                                                                                      roads[int(problem[0])].lon,
-                                                                                      roads[int(problem[1])].lat,
-                                                                                      roads[int(problem[1])].lon)) + '\n'
+                line += '- ' + str(find_g_time(path, roads4) + astar.huristic_function(roads4[int(problem[0])].lat,
+                                                                                       roads4[int(problem[0])].lon,
+                                                                                       roads4[int(problem[1])].lat,
+                                                                                       roads4[
+                                                                                           int(problem[1])].lon)) + '\n'
                 results_file.write(line)
-
+                print("problem =====: ", problem)
+                print("pre_nodes =====: ", pre_nodes)
+                print("path ======: ", path)
+                print("**********************************************************************************")
+                pre_nodes.clear()
 
 
 if __name__ == '__main__':
     # roads = astar.load_map_from_csv()
-    # path = IDA_star(roads,733186, 733184, f=lambda j_1, j_2:
-    # astar.huristic_function(roads[j_1].lat, roads[j_1].lon, roads[j_2].lat, roads[j_2].lon) + ucs.g(roads[j_1],
-    #                                                                                                 roads[j_2]),
-    #                 h=astar.huristic_function)
-    # path.insert(0, 733186)
+    # path = IDA_star(roads, 742505, 742506, f=lambda j_1, j_2:
+    #                 astar.huristic_function(roads[j_1].lat, roads[j_1].lon, roads[j_2].lat, roads[j_2].lon)
+    #                 + ucs.g(roads[j_1], roads[j_2]), h=astar.huristic_function)
+    # path.insert(0, 742505)
     # print(path)
+    # print(pre_nodes)
     ida_run()
+

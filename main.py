@@ -1,12 +1,12 @@
 import os
-import algorithms.astar as astar
-import algorithms.ucs as ucs
-import ways.graph as graph
 import random
 import os
 import csv
 
-from algorithms.IDA import IDA_star
+import algorithms.astar as astar
+import algorithms.ucs as ucs
+import ways.graph as graph
+import algorithms.IDA as ida
 from utils import get_project_root
 from ways import draw as draw
 
@@ -36,7 +36,7 @@ def generate_search_problem(roads):
     random_s = random.randint(0, len(roads))
     j_start = roads[random_s]
     # TODO: 2. change num of steps to be more complex
-    steps = random.randint(1, 10)
+    steps = random.randint(7, 15)
     # 3. walk from neigbor to neighbor steps time.
     current_junction = j_start
     for i in range(steps):
@@ -65,17 +65,22 @@ def ida_plot():
         csv_reader = csv.reader(problems_file)
         problems = []
         for problem in csv_reader:
-            problems += problem
+            problems += [problem]
         array_of_index_to_problem = set()
+        print(problems)
         while len(array_of_index_to_problem) < 10:
-            array_of_index_to_problem.add(random.randint(1, 100))
+            array_of_index_to_problem.add(random.randint(0, 99))
         for i in array_of_index_to_problem:
             p = problems[i]
-            path = IDA_star(roads, int(p[0]), int(p[1]), f=lambda j_1, j_2:
+            print(p)
+            path = ida.IDA_star(roads, int(p[0]), int(p[1]), f=lambda j_1, j_2:
             huristic_function(roads[j_1].lat, roads[j_1].lon, roads[j_2].lat, roads[j_2].lon) + ucs.g(roads[j_1],
                                                                                                       roads[j_2]),
                             h=huristic_function)
+
+            path = ida.find_path(int(p[0]), int(p[1]), ida.pre_nodes)
             draw.plot_path(roads, path)
+            ida.pre_nodes.clear()
 
 
 def find_ucs_rout(source, target):
@@ -113,5 +118,5 @@ if __name__ == '__main__':
 
     # astar.asar_run()
     # dispatch(argv)
-    # create_csv_problems()
+    create_csv_problems()
     ida_plot()
