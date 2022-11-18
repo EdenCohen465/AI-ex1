@@ -94,8 +94,7 @@ def find_g_time(path3, roads3):
     return time
 
 
-def ida_run():
-    roads4 = load_map_from_csv()
+def ida_run(roads):
     results_path = os.path.join(get_project_root(), 'results', 'IDARuns.txt')
     problem_path = os.path.join(get_project_root(), 'problems.csv')
     # check if the file already exists, if so delete the file.
@@ -105,20 +104,20 @@ def ida_run():
     with open(problem_path, 'r') as problems_file:
         csv_reader = csv.reader(problems_file)
         for problem in csv_reader:
-            path = IDA_star(roads4, int(problem[0]), int(problem[1]), f=lambda j_1, j_2:
-            astar.huristic_function(roads4[j_1].lat, roads4[j_1].lon, roads4[j_2].lat, roads4[j_2].lon) + ucs.g(
-                roads4[j_1],
-                roads4[j_2]),
+            path = IDA_star(roads, int(problem[0]), int(problem[1]), f=lambda j_1, j_2:
+            astar.huristic_function(roads[j_1].lat, roads[j_1].lon, roads[j_2].lat, roads[j_2].lon) + ucs.g(
+                roads[j_1],
+                roads[j_2]),
                             h=astar.huristic_function)
             # path.insert(0, int(problem[0]))
             with open(results_path, 'a') as results_file:
                 line = ''
                 for j in path:
                     line += str(j) + ' '
-                line += '- ' + str(find_g_time(path, roads4) + astar.huristic_function(roads4[int(problem[0])].lat,
-                                                                                       roads4[int(problem[0])].lon,
-                                                                                       roads4[int(problem[1])].lat,
-                                                                                       roads4[
+                line += '- ' + str(find_g_time(path, roads) + astar.huristic_function(roads[int(problem[0])].lat,
+                                                                                       roads[int(problem[0])].lon,
+                                                                                       roads[int(problem[1])].lat,
+                                                                                       roads[
                                                                                            int(problem[1])].lon)) + '\n'
                 results_file.write(line)
                 print("problem =====: ", problem)

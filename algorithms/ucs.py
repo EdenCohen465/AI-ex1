@@ -8,8 +8,7 @@ from algorithms.bestPath import find_min_distances_and_predecessor, find_path
 from ways import tools, graph
 
 
-def ucs_run():
-    roads = graph.load_map_from_csv()
+def ucs_run(roads):
     path_result = os.path.join(get_project_root(), 'results/UCSRuns.txt')
     path_problems = os.path.join(get_project_root(), 'problems.csv')
     # check if the file already exists, if so delete the file.

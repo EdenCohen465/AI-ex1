@@ -34,8 +34,7 @@ def find_g_time(path, roads):
     return time
 
 
-def asar_run():
-    roads = load_map_from_csv()
+def asar_run(roads):
     results_path = os.path.join(get_project_root(), 'results', 'AStarRuns.txt')
     problem_path = os.path.join(get_project_root(), 'problems.csv')
     # check if the file already exists, if so delete the file.

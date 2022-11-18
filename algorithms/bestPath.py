@@ -7,29 +7,34 @@ def find_min_distances_and_predecessor(roads, source, target, f):
     min_distances[source] = 0  # cost for getting from source to source is 0.
     # init the predecessor dict
     predecessor = {}
+    # initialize an empty closed_list
+    closed_list = []
     # while queue is not empty
     while frontier:
-        print(frontier)
-        pair_min =min(frontier, key=lambda p: p[1])
+
+        pair_min = min(frontier, key=lambda p: p[1])
         # in the first iteration, the only member in the queue is the source.
         current_junc_index = pair_min[0]
         frontier.remove(pair_min)
         if current_junc_index == target:
             return min_distances, predecessor
-        # loop through the links of current junction
-        for link in roads[current_junc_index].links:
-            # get junc info of the current link
-            neighbor_link = roads[link.target]
-            current_j = roads[current_junc_index]
-            # get potential new_dist from start to link = the distance from s to current junction + the distance
-            # from current junction to neighbor link.
-            new_dist = min_distances[current_junc_index] + f(current_j, neighbor_link)
+        if current_junc_index not in closed_list:
+            # append current junction to the closed list because we are going to expand him
+            closed_list.append(current_junc_index)
+            # loop through the links of current junction
+            for link in roads[current_junc_index].links:
+                # get junc info of the current link
+                neighbor_link = roads[link.target]
+                current_j = roads[current_junc_index]
+                # get potential new_dist from start to link = the distance from s to current junction + the distance
+                # from current junction to neighbor link.
+                new_dist = min_distances[current_junc_index] + f(current_j, neighbor_link)
 
-            # if the new_dist is shorter to reach neighbor updated to newDist
-            if new_dist < min_distances[neighbor_link.index]:
-                min_distances[neighbor_link.index] = min(new_dist, min_distances[neighbor_link.index])
-                frontier.append((neighbor_link.index, new_dist))
-                predecessor[neighbor_link.index] = current_junc_index
+                # if the new_dist is shorter to reach neighbor updated to newDist
+                if new_dist < min_distances[neighbor_link.index]:
+                    min_distances[neighbor_link.index] = min(new_dist, min_distances[neighbor_link.index])
+                    frontier.append((neighbor_link.index, new_dist))
+                    predecessor[neighbor_link.index] = current_junc_index
 
     return min_distances, predecessor
 

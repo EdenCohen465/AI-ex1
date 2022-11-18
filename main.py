@@ -2,7 +2,7 @@ import os
 import random
 import os
 import csv
-
+import timeit
 import algorithms.astar as astar
 import algorithms.ucs as ucs
 import ways.graph as graph
@@ -115,10 +115,28 @@ def dispatch(argv):
     print(' '.join(str(j) for j in path))
 
 
+def caculate_avg_running_time():
+    roads = graph.load_map_from_csv()
+    start_ucs = timeit.default_timer()
+    ucs.ucs_run(roads)
+    stop_ucs = timeit.default_timer()
+    print('ucs Time -------------------------------------------------------- ', (stop_ucs - start_ucs) / 100)
+    start_astar = timeit.default_timer()
+    astar.asar_run(roads)
+    stop_astar = timeit.default_timer()
+    print('astar Time -------------------------------------------------------- ', (stop_astar - start_astar) / 100)
+    start_ida = timeit.default_timer()
+    ida.ida_run(roads)
+    stop_ida = timeit.default_timer()
+    print('ida Time -------------------------------------------------------- ', (stop_ida - start_ida) / 100)
+
+
 if __name__ == '__main__':
     from sys import argv
 
+    caculate_avg_running_time()
+
     # astar.asar_run()
-    dispatch(argv)
-    # create_csv_problems()
-    # ida_plot()
+   # dispatch(argv)
+   #  create_csv_problems()
+    #ida_plot()
