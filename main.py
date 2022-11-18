@@ -50,7 +50,6 @@ def generate_search_problem(roads):
     return j_start.index, j_goal.index
 
 
-
 def huristic_function(lat1, lon1, lat2, lon2):
     return astar.huristic_function(lat1, lon1, lat2, lon2)
 
@@ -76,9 +75,8 @@ def ida_plot():
             path = ida.IDA_star(roads, int(p[0]), int(p[1]), f=lambda j_1, j_2:
             huristic_function(roads[j_1].lat, roads[j_1].lon, roads[j_2].lat, roads[j_2].lon) + ucs.g(roads[j_1],
                                                                                                       roads[j_2]),
-                            h=huristic_function)
+                                h=huristic_function)
 
-            path = ida.find_path(int(p[0]), int(p[1]), ida.pre_nodes)
             draw.plot_path(roads, path)
             ida.pre_nodes.clear()
 
@@ -97,7 +95,11 @@ def find_astar_route(source, target):
 
 def find_idastar_route(source, target):
     roads = graph.load_map_from_csv()
-    path = astar.astar_path(source, target, roads)
+    path = ida.IDA_star(roads, source, target, f=lambda j_1, j_2:
+    astar.huristic_function(roads[j_1].lat, roads[j_1].lon, roads[j_2].lat, roads[j_2].lon) + ucs.g(
+        roads[j_1],
+        roads[j_2]),
+                        h=astar.huristic_function)
     return path
 
 
@@ -117,6 +119,6 @@ if __name__ == '__main__':
     from sys import argv
 
     # astar.asar_run()
-    # dispatch(argv)
-    create_csv_problems()
-    ida_plot()
+    dispatch(argv)
+    # create_csv_problems()
+    # ida_plot()

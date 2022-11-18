@@ -70,6 +70,7 @@ def find_path(source, target, predecessor):
 def IDA_star(roads2, source, target, f, h):
     global new_limit
     new_limit = h(roads2[source].lat, roads2[source].lon, roads2[target].lat, roads2[target].lon)
+    i = 0
     while True:
         print("Iteration with threshold: " + str(new_limit))
         f_limit = new_limit
@@ -77,8 +78,11 @@ def IDA_star(roads2, source, target, f, h):
         path2 = DFS_countour(roads2, source, 0, None, f_limit, target, h, f)
         if path2:
             print(pre_nodes)
-            return path2
+            print("num of iteration:          ", i)
+            path = find_path(source, target, pre_nodes)
+            return path
         pre_nodes.clear()
+        i += 1
 
 
 def find_g_time(path3, roads3):
@@ -107,7 +111,6 @@ def ida_run():
                 roads4[j_2]),
                             h=astar.huristic_function)
             # path.insert(0, int(problem[0]))
-            path = find_path(int(problem[0]), int(problem[1]), pre_nodes)
             with open(results_path, 'a') as results_file:
                 line = ''
                 for j in path:
