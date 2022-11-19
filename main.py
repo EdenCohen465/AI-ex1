@@ -134,9 +134,9 @@ def caculate_avg_running_time():
 if __name__ == '__main__':
     from sys import argv
 
-    caculate_avg_running_time()
+   # caculate_avg_running_time()
 
     # astar.asar_run()
-   # dispatch(argv)
+    dispatch(argv)
    #  create_csv_problems()
     #ida_plot()

@@ -39,15 +39,13 @@ def DFS_countour(roads1, current_j, cost, path1, f_limit, target, h, f):
         n = roads1[neighbor.target]
         # delete old child of current_j
 
-        keys_to_remove = []
-
         pre_nodes[current_j] = neighbor.target
         if path1 is not None:
             path1.append(n.index)
             new_path = path1
         else:
             new_path = [n.index]
-        path1 = DFS_countour(roads1, n.index, cost + h(j.lat, j.lon, n.lat, n.lon), new_path, f_limit, target, h, f)
+        path1 = DFS_countour(roads1, n.index, cost + h(j.lat, j.lon, t.lat, t.lon), new_path, f_limit, target, h, f)
         if path1 is not None:
             return path1
     return None
